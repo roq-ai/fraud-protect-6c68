@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model client {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description  String?        @db.VarChar(255)
+  image        String?        @db.VarChar(255)
+  name         String         @db.VarChar(255)
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  updated_at   DateTime       @default(now()) @db.Timestamp(6)
+  user_id      String         @db.Uuid
+  tenant_id    String         @db.VarChar(255)
+  user         user           @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  phone_number phone_number[]
+  spoof_call   spoof_call[]
+}
+
+model phone_number {
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  number     String       @db.VarChar(255)
+  client_id  String       @db.Uuid
+  created_at DateTime     @default(now()) @db.Timestamp(6)
+  updated_at DateTime     @default(now()) @db.Timestamp(6)
+  client     client       @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  spoof_call spoof_call[]
+}
+
+model spoof_call {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status          String       @db.VarChar(255)
+  client_id       String       @db.Uuid
+  phone_number_id String       @db.Uuid
+  created_at      DateTime     @default(now()) @db.Timestamp(6)
+  updated_at      DateTime     @default(now()) @db.Timestamp(6)
+  client          client       @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  phone_number    phone_number @relation(fields: [phone_number_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email       String   @unique @db.VarChar(255)
+  firstName   String?  @db.VarChar(255)
+  lastName    String?  @db.VarChar(255)
+  roq_user_id String   @db.VarChar(255)
+  tenant_id   String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  client      client[]
+}
